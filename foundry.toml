@@ -4,4 +4,17 @@ src = "src"
 out = "out"
 libs = ["lib"]
 
-remappings = ['@chainlink/contracts=lib/chainlink-brownie-contracts/contracts']
+remappings = [
+    '@chainlink/contracts/=lib/chainlink-brownie-contracts/contracts/',
+    '@solmate=lib/solmate/src/',
+]
+fs_prmissions = [
+    { access = "read", path = "./broadcast" },
+    { access = "read", path = "./reports" },
+]
+
+[fuzz]
+runs = 1000
+
+
+# ffi = true
