@@ -70,13 +70,14 @@ contract Raffle is VRFConsumerBaseV2Plus {
 
     /* 构造函数初始化合约的状态变量，并设置 VRF 的参数 */
     constructor(
-        uint256 subscriptionId,
-        bytes32 gasLane, // keyhash
-        uint256 interval,
-        uint256 entranceFee,
-        uint32 callbackGasLimit,
-        address vrfCoodininator
-    ) VRFConsumerBaseV2Plus(vrfCoodininator) {
+        uint256 subscriptionId, // 这是一个用于 VRF（可验证随机函数）服务的订阅 ID。它用于识别与特定 VRF 服务的订阅关系，通常由 Chainlink VRF 提供。
+        bytes32 gasLane, // keyhash,这代表一个“关键哈希”（key hash），用于指定在请求随机数时所使用的 gas 价格路径。它通常用于决定在请求随机数时所使用的 gas 费用。
+        uint256 interval, // sepolia interval设置为30秒
+        uint256 entranceFee, // sepolia entrance fee设置为不小于0.01 ether
+        uint32 callbackGasLimit, // 这是在请求随机数时，回调函数所允许的最大 gas 限制。它确保在处理随机数时不会超出 gas 限制。
+        address vrfCoodininator //这是 VRF 协调器的地址，合约需要与之交互以请求随机数。它是 Chainlink VRF 服务的一个关键组件。
+    ) VRFConsumerBaseV2Plus(vrfCoodininator) { // 这部分表示当前合约继承自 VRFConsumerBaseV2Plus（继承自 VRFConsumerBaseV2Plus 使得合约能够请求随机数，这在许多基于随机性的应用（如彩票、游戏等）中是至关重要的。），并在构造函数中传递了 vrfCoodininator 地址。这是 Chainlink VRF 的一个基础合约，提供了请求随机数的功能。
+        // 接下来的部分是对合约状态变量的初始化
         i_entranceFee = entranceFee;
         i_interval = interval;
         // s_vrfCoordinator.requestRandomWords()
@@ -102,10 +103,11 @@ contract Raffle is VRFConsumerBaseV2Plus {
         if (s_raffleState != RaffleState.OPEN) {
             revert Raffle__RaffleNotOpen();
         }
-
+        //// 将当前调用者地址添加到参与者数组
         s_players.push(payable(msg.sender));
         // 1.Makes migration easier - Event
         // 2.Makes front end "indexing" easier - Event
+        // // 触发事件，记录参与者加入信息
         emit RaffleEntered(msg.sender);
     }
 
@@ -127,6 +129,7 @@ contract Raffle is VRFConsumerBaseV2Plus {
      */
 
     // 2.检查自动化，检查是否满足条件以进行抽奖自动化（时间间隔、状态、余额和参与者）。
+    // checkUpkeep 函数通常由 Chainlink Keeper 网络定期调用，以检查合约是否满足自动化执行的条件。
     function checkUpkeep(
         bytes memory /* checkData */
     ) public view returns (bool upkeepNeeded, bytes memory /* performData */) {
